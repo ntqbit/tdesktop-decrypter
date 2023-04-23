@@ -1,5 +1,5 @@
 # Telegram Desktop tdata folder decrypter written in python
-Inspired by [https://github.com/atilaromero/telegram-desktop-decrypt](telegram-desktop-decrypt)
+Inspired by [telegram-desktop-decrypt](https://github.com/atilaromero/telegram-desktop-decrypt)
 
 # Usage
 ```bash
