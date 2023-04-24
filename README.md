@@ -5,3 +5,7 @@ Inspired by [telegram-desktop-decrypt](https://github.com/atilaromero/telegram-d
 ```bash
 python decrypter/decrypt.py /path/to/tdata
 ```
+
+# Useful links
+https://github.com/atilaromero/telegram-desktop-decrypt
+https://github.com/MihaZupan/TelegramStorageParser
