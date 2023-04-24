@@ -1,8 +1,8 @@
 from setuptools import setup
 
 setup(
-    name="telegram desktop decrypter",
+    name="Telegram Desktop decrypter",
     version="1.0",
-    packages=['decrypter'],
+    packages=['tdesktop_decrypter'],
     install_requires=['tgcrypto']
 )
