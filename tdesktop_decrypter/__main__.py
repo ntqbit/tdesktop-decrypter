@@ -1,16 +1,9 @@
-from .decrypter import TdataReader
+from typing import Dict, Any, Optional
 
-if __name__ == '__main__':
-    import argparse
+from .decrypter import TdataReader, ParsedAccount, SettingsBlock
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument('tdata', type=str, help='Path to tdata/ directory')
-    args = parser.parse_args()
-
-    reader = TdataReader(args.tdata)
-    parsed_tdata = reader.read()
-
-    for account in parsed_tdata.accounts.values():
+def display_accounts(accounts: Dict[int, ParsedAccount]):
+    for account in accounts.values():
         print(f'Account {account.index}:')
 
         print('MTP data:')
@@ -19,3 +12,30 @@ if __name__ == '__main__':
 
         for dc_id, key in account.mtp_data.keys.items():
             print(f'Key DC {dc_id}: {key.hex(" ")}')
+
+
+def display_settings(settings: Optional[Dict[SettingsBlock, Any]]):
+    if settings is None:
+        print('No settings found.')
+        return
+
+    for setting_block, value in settings.items():
+        print(f'{setting_block}: {value}')
+
+
+if __name__ == '__main__':
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('tdata', type=str, help='Path to tdata/ directory')
+    parser.add_argument('show_settings', type=bool, action='store_true', help='Show decrypted settings')
+    args = parser.parse_args()
+
+    reader = TdataReader(args.tdata)
+    parsed_tdata = reader.read()
+    
+    display_accounts(parsed_tdata.accounts)
+    
+    if args.show_settings:
+        display_settings(parsed_tdata.settings)
+    

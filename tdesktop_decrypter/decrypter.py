@@ -101,6 +101,12 @@ class ParsedTdata:
         self.accounts: Dict[int, ParsedAccount] = None
 
 
+class TdataReaderException(Exception):
+    pass
+
+class NoKeyFileException(TdataReaderException):
+    pass
+
 class TdataReader:
     DEFAULT_DATANAME = 'data'
 
@@ -129,7 +135,11 @@ class TdataReader:
         if passcode is None:
             passcode = ''
 
-        key_data_tdf = read_tdf_file(self._path(self._key_data_name()))
+        try:
+            key_data_tdf = read_tdf_file(self._path(self._key_data_name()))
+        except FileNotFoundError as exc:
+            raise NoKeyFileException('no key file') from exc
+        
         local_key, account_indexes_data = decrypt_key_data_tdf(passcode.encode(), key_data_tdf)
         account_indexes, _ = read_key_data_accounts(BytesIO(account_indexes_data))
 
