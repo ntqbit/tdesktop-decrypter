@@ -1,13 +1,13 @@
 import os
 import hashlib
 
-from typing import Tuple, List, Dict
+from typing import Tuple, List, Dict, Optional, Any
 
 from io import BytesIO
 
 from tdesktop_decrypter.qt import read_qt_int32, read_qt_uint64
 from tdesktop_decrypter.file_io import read_tdf_file, read_encrypted_file
-from tdesktop_decrypter.settings import SettingsBlocks, read_settings_blocks
+from tdesktop_decrypter.settings import SettingsBlock, read_settings_blocks
 from tdesktop_decrypter.storage import decrypt_key_data_tdf, read_key_data_accounts, decrypt_settings_tdf
 
 
@@ -91,13 +91,13 @@ class AccountReader:
         mtp_data_file_path = os.path.join(self._base_path, self._dataname_key)
         version, mtp_data_settings = read_encrypted_file(mtp_data_file_path, local_key)
         blocks = read_settings_blocks(version, BytesIO(mtp_data_settings))
-        mtp_authorization = blocks[SettingsBlocks.dbiMtpAuthorization]
+        mtp_authorization = blocks[SettingsBlock.dbiMtpAuthorization]
         return read_mtp_authorization(BytesIO(mtp_authorization))
 
 
 class ParsedTdata:
     def __init__(self):
-        self.settings = None
+        self.settings: Optional[Dict[SettingsBlock, Any]] = None
         self.accounts: Dict[int, ParsedAccount] = None
 
 
@@ -105,6 +105,8 @@ class TdataReader:
     DEFAULT_DATANAME = 'data'
 
     def __init__(self, base_path: str, dataname: str = None):
+        # base_path - path to tdata/ directory.
+        
         self._base_path = base_path
         self._dataname = dataname or TdataReader.DEFAULT_DATANAME
 
@@ -133,8 +135,13 @@ class TdataReader:
 
         return local_key, account_indexes
 
-    def read_settings(self):
-        settings_tdf = read_tdf_file(self._path('settings'))
+    def read_settings(self) -> Optional[Dict[SettingsBlock, Any]]:
+        try:
+            settings_tdf = read_tdf_file(self._path('settings'))
+        except FileNotFoundError:
+            # No settings file.
+            return None
+        
         settings_decrypted = decrypt_settings_tdf(settings_tdf)
         return read_settings_blocks(settings_tdf.version, BytesIO(settings_decrypted))
 

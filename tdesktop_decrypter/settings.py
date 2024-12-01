@@ -1,17 +1,18 @@
+from typing import Any, Dict
 from io import BytesIO
 from enum import Enum
 
 from tdesktop_decrypter.qt import (
     read_qt_int32,
-    read_qt_uint32,
-    read_qt_int64,
     read_qt_uint64,
     read_qt_byte_array,
     read_qt_utf8
 )
 
+class SettingsReadException(Exception):
+    pass
 
-class SettingsBlocks(Enum):
+class SettingsBlock(Enum):
     dbiKey = 0x00
     dbiUser = 0x01
 
@@ -112,77 +113,77 @@ def read_boolean(data: BytesIO) -> bool:
     return read_qt_int32(data) == 1
 
 
-def read_settings_block(verison, data: BytesIO, block_id: SettingsBlocks):
-    if block_id == SettingsBlocks.dbiAutoStart:
+def read_settings_block(verison, data: BytesIO, block_id: SettingsBlock) -> Any:
+    if block_id == SettingsBlock.dbiAutoStart:
         return read_boolean(data)
 
-    if block_id == SettingsBlocks.dbiStartMinimized:
+    if block_id == SettingsBlock.dbiStartMinimized:
         return read_boolean(data)
 
-    if block_id == SettingsBlocks.dbiSongVolumeOld:
+    if block_id == SettingsBlock.dbiSongVolumeOld:
         return read_qt_int32(data) / 1e6
 
-    if block_id == SettingsBlocks.dbiSendToMenu:
+    if block_id == SettingsBlock.dbiSendToMenu:
         return read_boolean(data)
 
-    if block_id == SettingsBlocks.dbiSeenTrayTooltip:
+    if block_id == SettingsBlock.dbiSeenTrayTooltip:
         return read_boolean(data)
 
-    if block_id == SettingsBlocks.dbiAutoUpdate:
+    if block_id == SettingsBlock.dbiAutoUpdate:
         return read_boolean(data)
 
-    if block_id == SettingsBlocks.dbiLastUpdateCheck:
+    if block_id == SettingsBlock.dbiLastUpdateCheck:
         return read_qt_int32(data)
 
-    if block_id == SettingsBlocks.dbiScalePercent:
+    if block_id == SettingsBlock.dbiScalePercent:
         return read_qt_int32(data)
 
-    if block_id == SettingsBlocks.dbiFallbackProductionConfig:
+    if block_id == SettingsBlock.dbiFallbackProductionConfig:
         return read_qt_byte_array(data)
 
-    if block_id == SettingsBlocks.dbiApplicationSettings:
+    if block_id == SettingsBlock.dbiApplicationSettings:
         return read_qt_byte_array(data)
 
-    if block_id == SettingsBlocks.dbiDialogLastPath:
+    if block_id == SettingsBlock.dbiDialogLastPath:
         return read_qt_utf8(data)
 
-    if block_id == SettingsBlocks.dbiPowerSaving:
+    if block_id == SettingsBlock.dbiPowerSaving:
         return read_qt_int32(data)
 
-    if block_id == SettingsBlocks.dbiThemeKey:
+    if block_id == SettingsBlock.dbiThemeKey:
         return {
             'day': read_qt_uint64(data),
             'night': read_qt_uint64(data),
             'night_mode': read_boolean(data)
         }
 
-    if block_id == SettingsBlocks.dbiBackgroundKey:
+    if block_id == SettingsBlock.dbiBackgroundKey:
         return {
             'day': read_qt_uint64(data),
             'night': read_qt_uint64(data)
         }
 
-    if block_id == SettingsBlocks.dbiTileBackground:
+    if block_id == SettingsBlock.dbiTileBackground:
         return {
             'day': read_qt_int32(data),
             'night': read_qt_int32(data)
         }
     
-    if block_id == SettingsBlocks.dbiLangPackKey:
+    if block_id == SettingsBlock.dbiLangPackKey:
         return read_qt_uint64(data)
 
-    if block_id == SettingsBlocks.dbiMtpAuthorization:
+    if block_id == SettingsBlock.dbiMtpAuthorization:
         return read_qt_byte_array(data)
 
-    raise Exception(f'Unnown block ID while reading settings: {block_id}')
+    raise SettingsReadException(f'Unnown block ID while reading settings: {block_id}')
 
 
-def read_settings_blocks(version, data: BytesIO):
+def read_settings_blocks(version, data: BytesIO) -> Dict[SettingsBlock, Any]:
     blocks = {}
 
     try:
         while True:
-            block_id = SettingsBlocks(read_qt_int32(data))
+            block_id = SettingsBlock(read_qt_int32(data))
             block_data = read_settings_block(version, data, block_id)
             blocks[block_id] = block_data
     except StopIteration:
