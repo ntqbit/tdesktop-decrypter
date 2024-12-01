@@ -2,6 +2,7 @@ from typing import Dict, Any, Optional
 
 from .decrypter import TdataReader, ParsedAccount, SettingsBlock
 
+
 def display_accounts(accounts: Dict[int, ParsedAccount]):
     for account in accounts.values():
         print(f'Account {account.index}:')
@@ -28,11 +29,13 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('tdata', type=str, help='Path to tdata/ directory')
+    parser.add_argument('passcode', type=str, default=None, required=False, help='Passcode')
     parser.add_argument('show_settings', type=bool, action='store_true', help='Show decrypted settings')
     args = parser.parse_args()
 
     reader = TdataReader(args.tdata)
-    parsed_tdata = reader.read()
+    
+    parsed_tdata = reader.read(args.passcode)
     
     display_accounts(parsed_tdata.accounts)
     
