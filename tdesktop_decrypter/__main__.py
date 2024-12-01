@@ -1,6 +1,12 @@
+import sys
+
 from typing import Dict, Any, Optional
 
-from .decrypter import TdataReader, ParsedAccount, SettingsBlock
+from .decrypter import TdataReader, ParsedAccount, SettingsBlock, NoKeyFileException
+
+
+def eprint(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
 
 
 def display_accounts(accounts: Dict[int, ParsedAccount]):
@@ -29,16 +35,19 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('tdata', type=str, help='Path to tdata/ directory')
-    parser.add_argument('passcode', type=str, default=None, required=False, help='Passcode')
-    parser.add_argument('show_settings', type=bool, action='store_true', help='Show decrypted settings')
+    parser.add_argument('--passcode', '-p', type=str, default=None, required=False, help='Passcode')
+    parser.add_argument('--show_settings', type=bool, action='store_true', help='Show decrypted settings')
     args = parser.parse_args()
 
     reader = TdataReader(args.tdata)
     
-    parsed_tdata = reader.read(args.passcode)
-    
-    display_accounts(parsed_tdata.accounts)
-    
-    if args.show_settings:
-        display_settings(parsed_tdata.settings)
+    try:
+        parsed_tdata = reader.read(args.passcode)
+        
+        display_accounts(parsed_tdata.accounts)
+        
+        if args.show_settings:
+            display_settings(parsed_tdata.settings)
+    except NoKeyFileException as exc:
+        eprint('No key file was found. Is the tdata path correct?')
     
