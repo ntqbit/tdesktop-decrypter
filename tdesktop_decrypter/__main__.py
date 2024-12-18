@@ -51,7 +51,7 @@ def display_json(parsed_tdata: ParsedTdata):
             "user_id": account.mtp_data.user_id,
             "main_dc_id": account.mtp_data.current_dc_id,
             "dc_auth_keys": {
-                dc_id: key.hex().lower() for dc_id, key in account.mtp_data.keys
+                dc_id: key.hex().lower() for dc_id, key in account.mtp_data.keys.items()
             },
         }
         for account in parsed_tdata.accounts.values()
@@ -81,7 +81,6 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--show_settings",
-        type=bool,
         action="store_true",
         help="Show decrypted settings",
     )
