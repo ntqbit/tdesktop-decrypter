@@ -1,4 +1,3 @@
-import os
 import hashlib
 
 from typing import Tuple, List, Dict, Optional, Any
@@ -6,7 +5,7 @@ from typing import Tuple, List, Dict, Optional, Any
 from io import BytesIO
 
 from tdesktop_decrypter.qt import read_qt_int32, read_qt_uint64
-from tdesktop_decrypter.file_io import read_tdf_file, read_encrypted_file
+from tdesktop_decrypter.file_io import TdataFileIo, TdataFileSystem
 from tdesktop_decrypter.settings import SettingsBlock, read_settings_blocks
 from tdesktop_decrypter.storage import (
     decrypt_key_data_tdf,
@@ -76,8 +75,8 @@ def read_mtp_authorization(data: BytesIO) -> MtpData:
 
 
 class AccountReader:
-    def __init__(self, base_path: str, index: int, dataname: str = None):
-        self._base_path = base_path
+    def __init__(self, io: TdataFileIo, index: int, dataname: str):
+        self._io = io
         self._index = index
         self._account_name = compose_account_name(dataname, index)
         self._dataname_key = compute_data_name_key(self._account_name)
@@ -89,8 +88,9 @@ class AccountReader:
         return parsed_account
 
     def read_mtp_data(self, local_key: bytes) -> MtpData:
-        mtp_data_file_path = os.path.join(self._base_path, self._dataname_key)
-        version, mtp_data_settings = read_encrypted_file(mtp_data_file_path, local_key)
+        version, mtp_data_settings = self._io.read_encrypted_file(
+            self._dataname_key, local_key
+        )
         blocks = read_settings_blocks(version, BytesIO(mtp_data_settings))
         mtp_authorization = blocks[SettingsBlock.dbiMtpAuthorization]
         return read_mtp_authorization(BytesIO(mtp_authorization))
@@ -113,10 +113,15 @@ class NoKeyFileException(TdataReaderException):
 class TdataReader:
     DEFAULT_DATANAME = "data"
 
-    def __init__(self, base_path: str, dataname: str = None):
-        # base_path - path to tdata/ directory.
+    def __init__(self, io: Tuple[str, TdataFileIo], dataname: str = None):
+        """
+        io is either the path to the tdata/ folder or TdataFileIo object
+        """
 
-        self._base_path = base_path
+        if isinstance(io, str):
+            io = TdataFileSystem(io)
+
+        self._io = io
         self._dataname = dataname or TdataReader.DEFAULT_DATANAME
 
     def read(self, passcode: str = None) -> ParsedTdata:
@@ -128,9 +133,7 @@ class TdataReader:
         accounts = {}
 
         for account_index in account_indexes:
-            account_reader = AccountReader(
-                self._base_path, account_index, self._dataname
-            )
+            account_reader = AccountReader(self._io, account_index, self._dataname)
             accounts[account_index] = account_reader.read(local_key)
 
         parsed_tdata.accounts = accounts
@@ -141,7 +144,7 @@ class TdataReader:
             passcode = ""
 
         try:
-            key_data_tdf = read_tdf_file(self._path(self._key_data_name()))
+            key_data_tdf = self._io.read_tdf_file(self._key_data_name())
         except FileNotFoundError as exc:
             raise NoKeyFileException("no key file") from exc
 
@@ -154,16 +157,13 @@ class TdataReader:
 
     def read_settings(self) -> Optional[Dict[SettingsBlock, Any]]:
         try:
-            settings_tdf = read_tdf_file(self._path("settings"))
+            settings_tdf = self._io.read_tdf_file("settings")
         except FileNotFoundError:
             # No settings file.
             return None
 
         settings_decrypted = decrypt_settings_tdf(settings_tdf)
         return read_settings_blocks(settings_tdf.version, BytesIO(settings_decrypted))
-
-    def _path(self, child: str) -> str:
-        return os.path.join(self._base_path, child)
 
     def _key_data_name(self):
         return "key_" + self._dataname
