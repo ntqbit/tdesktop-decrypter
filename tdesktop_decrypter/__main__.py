@@ -18,7 +18,7 @@ def display_accounts(accounts: Dict[int, ParsedAccount]):
         print(f'Main DC ID: {account.mtp_data.current_dc_id}')
 
         for dc_id, key in account.mtp_data.keys.items():
-            print(f'Key DC {dc_id}: {key.hex(" ")}')
+            print(f'Key DC {dc_id}: {key.hex()}')
 
 
 def display_settings(settings: Optional[Dict[SettingsBlock, Any]]):
