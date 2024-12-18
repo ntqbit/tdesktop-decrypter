@@ -8,21 +8,25 @@ from io import BytesIO
 from tdesktop_decrypter.qt import read_qt_int32, read_qt_uint64
 from tdesktop_decrypter.file_io import read_tdf_file, read_encrypted_file
 from tdesktop_decrypter.settings import SettingsBlock, read_settings_blocks
-from tdesktop_decrypter.storage import decrypt_key_data_tdf, read_key_data_accounts, decrypt_settings_tdf
+from tdesktop_decrypter.storage import (
+    decrypt_key_data_tdf,
+    read_key_data_accounts,
+    decrypt_settings_tdf,
+)
 
 
 def file_to_to_str(filekey: bytes):
-    return ''.join(f'{b:X}'[::-1] for b in filekey)
+    return "".join(f"{b:X}"[::-1] for b in filekey)
 
 
 def compute_data_name_key(dataname: str):
-    filekey = hashlib.md5(dataname.encode('utf8')).digest()[:8]
+    filekey = hashlib.md5(dataname.encode("utf8")).digest()[:8]
     return file_to_to_str(filekey)
 
 
 def compose_account_name(dataname: str, index: int):
     if index > 0:
-        return f'{dataname}#{index+1}'
+        return f"{dataname}#{index+1}"
     else:
         return dataname
 
@@ -33,7 +37,7 @@ class ParsedAccount:
         self.mtp_data: MtpData = None
 
     def __repr__(self):
-        return f'ParsedAccount(index={self.index})'
+        return f"ParsedAccount(index={self.index})"
 
 
 class MtpData:
@@ -44,7 +48,7 @@ class MtpData:
         self.keys_to_destroy: Dict[int, bytes] = None
 
     def __repr__(self):
-        return f'MtpData(user_id={self.user_id})'
+        return f"MtpData(user_id={self.user_id})"
 
 
 def read_mtp_authorization(data: BytesIO) -> MtpData:
@@ -61,10 +65,7 @@ def read_mtp_authorization(data: BytesIO) -> MtpData:
     def read_keys():
         count = read_qt_int32(data)
 
-        return {
-            read_qt_int32(data): data.read(256)
-            for _ in range(count)
-        }
+        return {read_qt_int32(data): data.read(256) for _ in range(count)}
 
     mtp_data = MtpData()
     mtp_data.user_id = user_id
@@ -104,15 +105,17 @@ class ParsedTdata:
 class TdataReaderException(Exception):
     pass
 
+
 class NoKeyFileException(TdataReaderException):
     pass
 
+
 class TdataReader:
-    DEFAULT_DATANAME = 'data'
+    DEFAULT_DATANAME = "data"
 
     def __init__(self, base_path: str, dataname: str = None):
         # base_path - path to tdata/ directory.
-        
+
         self._base_path = base_path
         self._dataname = dataname or TdataReader.DEFAULT_DATANAME
 
@@ -125,7 +128,9 @@ class TdataReader:
         accounts = {}
 
         for account_index in account_indexes:
-            account_reader = AccountReader(self._base_path, account_index, self._dataname)
+            account_reader = AccountReader(
+                self._base_path, account_index, self._dataname
+            )
             accounts[account_index] = account_reader.read(local_key)
 
         parsed_tdata.accounts = accounts
@@ -133,25 +138,27 @@ class TdataReader:
 
     def read_key_data(self, passcode: str = None) -> Tuple[bytes, List[int]]:
         if passcode is None:
-            passcode = ''
+            passcode = ""
 
         try:
             key_data_tdf = read_tdf_file(self._path(self._key_data_name()))
         except FileNotFoundError as exc:
-            raise NoKeyFileException('no key file') from exc
-        
-        local_key, account_indexes_data = decrypt_key_data_tdf(passcode.encode(), key_data_tdf)
+            raise NoKeyFileException("no key file") from exc
+
+        local_key, account_indexes_data = decrypt_key_data_tdf(
+            passcode.encode(), key_data_tdf
+        )
         account_indexes, _ = read_key_data_accounts(BytesIO(account_indexes_data))
 
         return local_key, account_indexes
 
     def read_settings(self) -> Optional[Dict[SettingsBlock, Any]]:
         try:
-            settings_tdf = read_tdf_file(self._path('settings'))
+            settings_tdf = read_tdf_file(self._path("settings"))
         except FileNotFoundError:
             # No settings file.
             return None
-        
+
         settings_decrypted = decrypt_settings_tdf(settings_tdf)
         return read_settings_blocks(settings_tdf.version, BytesIO(settings_decrypted))
 
@@ -159,4 +166,4 @@ class TdataReader:
         return os.path.join(self._base_path, child)
 
     def _key_data_name(self):
-        return 'key_' + self._dataname
+        return "key_" + self._dataname

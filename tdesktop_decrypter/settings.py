@@ -6,11 +6,13 @@ from tdesktop_decrypter.qt import (
     read_qt_int32,
     read_qt_uint64,
     read_qt_byte_array,
-    read_qt_utf8
+    read_qt_utf8,
 )
+
 
 class SettingsReadException(Exception):
     pass
+
 
 class SettingsBlock(Enum):
     dbiKey = 0x00
@@ -24,12 +26,12 @@ class SettingsBlock(Enum):
     dbiStartMinimized = 0x07
     dbiSoundFlashBounceNotifyOld = 0x08
     dbiWorkModeOld = 0x09
-    dbiSeenTrayTooltip = 0x0a
-    dbiDesktopNotifyOld = 0x0b
-    dbiAutoUpdate = 0x0c
-    dbiLastUpdateCheck = 0x0d
-    dbiWindowPositionOld = 0x0e
-    dbiConnectionTypeOldOld = 0x0f
+    dbiSeenTrayTooltip = 0x0A
+    dbiDesktopNotifyOld = 0x0B
+    dbiAutoUpdate = 0x0C
+    dbiLastUpdateCheck = 0x0D
+    dbiWindowPositionOld = 0x0E
+    dbiConnectionTypeOldOld = 0x0F
 
     dbiDefaultAttach = 0x11
     dbiCatsAndDogsOld = 0x12
@@ -40,12 +42,12 @@ class SettingsBlock(Enum):
     dbiEmojiTabOld = 0x17
     dbiRecentEmojiOldOldOld = 0x18
     dbiLoggedPhoneNumberOld = 0x19
-    dbiMutedPeersOld = 0x1a
+    dbiMutedPeersOld = 0x1A
 
-    dbiNotifyViewOld = 0x1c
-    dbiSendToMenu = 0x1d
-    dbiCompressPastedImageOld = 0x1e
-    dbiLangOld = 0x1f
+    dbiNotifyViewOld = 0x1C
+    dbiSendToMenu = 0x1D
+    dbiCompressPastedImageOld = 0x1E
+    dbiLangOld = 0x1F
     dbiLangFileOld = 0x20
     dbiTileBackgroundOld = 0x21
     dbiAutoLockOld = 0x22
@@ -66,8 +68,8 @@ class SettingsBlock(Enum):
     dbiAutoPlayOld = 0x37
     dbiAdaptiveForWideOld = 0x38
     dbiHiddenPinnedMessagesOld = 0x39
-    dbiRecentEmojiOld = 0x3a
-    dbiEmojiVariantsOld = 0x3b
+    dbiRecentEmojiOld = 0x3A
+    dbiEmojiVariantsOld = 0x3B
     dbiDialogsModeOld = 0x40
     dbiModerateModeOld = 0x41
     dbiVideoVolumeOld = 0x42
@@ -78,12 +80,12 @@ class SettingsBlock(Enum):
     dbiThemeKeyOld = 0x47
     dbiDialogsWidthRatioOld = 0x48
     dbiUseExternalVideoPlayerOld = 0x49
-    dbiDcOptionsOld = 0x4a
-    dbiMtpAuthorization = 0x4b
-    dbiLastSeenWarningSeenOld = 0x4c
-    dbiSessionSettings = 0x4d
-    dbiLangPackKey = 0x4e
-    dbiConnectionTypeOld = 0x4f
+    dbiDcOptionsOld = 0x4A
+    dbiMtpAuthorization = 0x4B
+    dbiLastSeenWarningSeenOld = 0x4C
+    dbiSessionSettings = 0x4D
+    dbiLangPackKey = 0x4E
+    dbiConnectionTypeOld = 0x4F
     dbiStickersFavedLimitOld = 0x50
     dbiSuggestStickersByEmojiOld = 0x51
     dbiSuggestEmojiOld = 0x52
@@ -94,12 +96,12 @@ class SettingsBlock(Enum):
     dbiPowerSaving = 0x57
     dbiScalePercent = 0x58
     dbiPlaybackSpeedOld = 0x59
-    dbiLanguagesKey = 0x5a
-    dbiCallSettingsOld = 0x5b
-    dbiCacheSettings = 0x5c
-    dbiTxtDomainStringOld = 0x5d
-    dbiApplicationSettings = 0x5e
-    dbiDialogsFiltersOld = 0x5f
+    dbiLanguagesKey = 0x5A
+    dbiCallSettingsOld = 0x5B
+    dbiCacheSettings = 0x5C
+    dbiTxtDomainStringOld = 0x5D
+    dbiApplicationSettings = 0x5E
+    dbiDialogsFiltersOld = 0x5F
     dbiFallbackProductionConfig = 0x60
     dbiBackgroundKey = 0x61
 
@@ -152,30 +154,24 @@ def read_settings_block(verison, data: BytesIO, block_id: SettingsBlock) -> Any:
 
     if block_id == SettingsBlock.dbiThemeKey:
         return {
-            'day': read_qt_uint64(data),
-            'night': read_qt_uint64(data),
-            'night_mode': read_boolean(data)
+            "day": read_qt_uint64(data),
+            "night": read_qt_uint64(data),
+            "night_mode": read_boolean(data),
         }
 
     if block_id == SettingsBlock.dbiBackgroundKey:
-        return {
-            'day': read_qt_uint64(data),
-            'night': read_qt_uint64(data)
-        }
+        return {"day": read_qt_uint64(data), "night": read_qt_uint64(data)}
 
     if block_id == SettingsBlock.dbiTileBackground:
-        return {
-            'day': read_qt_int32(data),
-            'night': read_qt_int32(data)
-        }
-    
+        return {"day": read_qt_int32(data), "night": read_qt_int32(data)}
+
     if block_id == SettingsBlock.dbiLangPackKey:
         return read_qt_uint64(data)
 
     if block_id == SettingsBlock.dbiMtpAuthorization:
         return read_qt_byte_array(data)
 
-    raise SettingsReadException(f'Unnown block ID while reading settings: {block_id}')
+    raise SettingsReadException(f"Unnown block ID while reading settings: {block_id}")
 
 
 def read_settings_blocks(version, data: BytesIO) -> Dict[SettingsBlock, Any]:
@@ -188,5 +184,5 @@ def read_settings_blocks(version, data: BytesIO) -> Dict[SettingsBlock, Any]:
             blocks[block_id] = block_data
     except StopIteration:
         pass
-    
+
     return blocks

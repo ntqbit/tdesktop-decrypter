@@ -18,7 +18,7 @@ def create_local_key(passcode: bytes, salt: bytes) -> bytes:
         iterations = 1
 
     password = hashlib.sha512(salt + passcode + salt).digest()
-    return hashlib.pbkdf2_hmac('sha512', password, salt, iterations, 256)
+    return hashlib.pbkdf2_hmac("sha512", password, salt, iterations, 256)
 
 
 def create_legacy_local_key(passcode: bytes, salt: bytes) -> bytes:
@@ -27,7 +27,7 @@ def create_legacy_local_key(passcode: bytes, salt: bytes) -> bytes:
     else:
         iterations = LocalEncryptNoPwdIterCount
 
-    return hashlib.pbkdf2_hmac('sha1', passcode, salt, iterations, 256)
+    return hashlib.pbkdf2_hmac("sha1", passcode, salt, iterations, 256)
 
 
 def decrypt_local(encrypted_msg, local_key):
@@ -36,11 +36,13 @@ def decrypt_local(encrypted_msg, local_key):
     decrypted = aes_decrypt_local(encrypted_data, msg_key, local_key)
 
     if hashlib.sha1(decrypted).digest()[:16] != msg_key:
-        raise CryptoException('bad decrypt key, data not decrypted - incorrect password')
+        raise CryptoException(
+            "bad decrypt key, data not decrypted - incorrect password"
+        )
 
-    length = int.from_bytes(decrypted[:4], 'little')
+    length = int.from_bytes(decrypted[:4], "little")
     if length > len(decrypted):
-        raise CryptoException(f'corrupted data. wrong length: {length}')
+        raise CryptoException(f"corrupted data. wrong length: {length}")
 
     return decrypted[4:length]
 
@@ -54,7 +56,7 @@ def prepare_aes_old_mtp(local_key, msg_key, send=False):
     x = 0 if send else 8
 
     def key_pos(pos, size):
-        return local_key[pos:pos + size]
+        return local_key[pos : pos + size]
 
     dataA = msg_key + key_pos(x, 32)
     dataB = key_pos(x + 32, 16) + msg_key + key_pos(x + 48, 16)

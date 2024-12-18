@@ -2,7 +2,11 @@ from typing import Tuple, List
 from io import BytesIO
 
 from tdesktop_decrypter.tdf import RawTdfFile
-from tdesktop_decrypter.crypto import create_local_key, create_legacy_local_key, decrypt_local
+from tdesktop_decrypter.crypto import (
+    create_local_key,
+    create_legacy_local_key,
+    decrypt_local,
+)
 from tdesktop_decrypter.qt import read_qt_byte_array, read_qt_int32
 
 
@@ -12,7 +16,7 @@ def decrypt_settings_tdf(settings_tdf: RawTdfFile):
     salt = read_qt_byte_array(encrypted_stream)
     encrypted_settings = read_qt_byte_array(encrypted_stream)
 
-    settings_key = create_legacy_local_key(b'', salt)
+    settings_key = create_legacy_local_key(b"", salt)
 
     return decrypt_local(encrypted_settings, settings_key)
 
@@ -34,10 +38,7 @@ def decrypt_key_data_tdf(passcode: bytes, key_data_tdf: RawTdfFile):
 def read_key_data_accounts(data: BytesIO) -> Tuple[List[int], int]:
     count = read_qt_int32(data)
 
-    indexes = [
-        read_qt_int32(data)
-        for _ in range(count)
-    ]
+    indexes = [read_qt_int32(data) for _ in range(count)]
 
     main_account = read_qt_int32(data)
 
