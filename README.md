@@ -16,16 +16,34 @@ pip install ./tdesktop-decrypter
 - `tdata` - path to tdata folder containing `settings` (or `settings`) and `key_*` files
 - `--passcode`, `-p` - an optional passcode for data decryption
 - `--show_settings` - show decrypted settings
+- `--json`, `-j` - JSON output
 
 ### Example
 ```bash
-$ python -m tdesktop_decrypter /path/to/tdata -p helloworld
+$ python -m tdesktop_decrypter /path/to/tdata -p passcode
 
 Account 0:
 MTP data:
 User ID: 12345
 Main DC ID: 1
-Key DC 1: AA BB CC DD ...
+Key DC 1: aabbccdd...
+
+
+$ python -m tdesktop_decrypter /path/to/tdata -p passcode -j
+
+{
+    "accounts": [
+        {
+            "index": 0,
+            "user_id": 12345,
+            "main_dc_id": 1,
+            "dc_auth_keys": {
+                "1": "aabbccdd..."
+            }
+        }
+    ],
+    "settings": null
+}
 ```
 
 ## Todo (not yet implemented)
