@@ -48,6 +48,7 @@ $ python -m tdesktop_decrypter /path/to/tdata -p passcode -j
 
 ## Todo (not yet implemented)
 - Media decryption
+- Decode `dbiApplicationSettings` setting block
 
 ## Useful links
 - https://github.com/atilaromero/telegram-desktop-decrypt
