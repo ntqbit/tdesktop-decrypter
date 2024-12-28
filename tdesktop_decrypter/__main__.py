@@ -36,6 +36,10 @@ def display_setting_value(setting: Any) -> str:
     if isinstance(setting, dict):
         return {k: display_setting_value(v) for k, v in setting.items()}
 
+    if isinstance(setting, list):
+        return [display_setting_value(v) for v in setting]
+
+    assert any(isinstance(setting, c) for c in (int, float, str))
     return setting
 
 

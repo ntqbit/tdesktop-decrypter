@@ -116,7 +116,7 @@ def read_boolean(data: BytesIO) -> bool:
 
 
 def read_settings_block(
-    verison, data: BytesIO, block_id: SettingsBlock
+    version, data: BytesIO, block_id: SettingsBlock
 ) -> Tuple[bool, int, bytes, str, dict]:
     if block_id == SettingsBlock.dbiAutoStart:
         return read_boolean(data)
@@ -143,7 +143,87 @@ def read_settings_block(
         return read_qt_int32(data)
 
     if block_id == SettingsBlock.dbiFallbackProductionConfig:
-        return read_qt_byte_array(data)
+
+        def read_dc_options(data: BytesIO):
+            minus_version = read_qt_int32(data)
+            if minus_version < 0:
+                version = -minus_version
+            else:
+                version = 0
+
+            if version > 0:
+                count = read_qt_int32(data)
+            else:
+                count = minus_version
+
+            dc_options = []
+
+            for _ in range(count):
+                dc_option = {
+                    "id": read_qt_int32(data),
+                    "flags": read_qt_int32(data),
+                    "port": read_qt_int32(data),
+                    "ip": read_qt_byte_array(data).decode(),
+                    "secret": read_qt_byte_array(data),
+                }
+
+                dc_options.append(dc_option)
+
+            cdn_config = []
+
+            if version > 1:
+                count = read_qt_int32(data)
+                for _ in range(count):
+                    cfg = {
+                        "dc_id": read_qt_int32(data),
+                        "n": read_qt_byte_array(data),
+                        "e": read_qt_byte_array(data),
+                    }
+
+                    cdn_config.append(cfg)
+
+            return {"version": version, "dc": dc_options, "cdn": cdn_config}
+
+        def read_fallback_config(data: BytesIO):
+            return {
+                "version": read_qt_int32(data),
+                "environment": read_qt_int32(data),
+                "dc_options": read_dc_options(BytesIO(read_qt_byte_array(data))),
+                "chatSizeMax": read_qt_int32(data),
+                "megagroupSizeMax": read_qt_int32(data),
+                "forwardedCountMax": read_qt_int32(data),
+                "onlineUpdatePeriod": read_qt_int32(data),
+                "offlineBlurTimeout": read_qt_int32(data),
+                "offlineIdleTimeout": read_qt_int32(data),
+                "onlineFocusTimeout": read_qt_int32(data),
+                "onlineCloudTimeout": read_qt_int32(data),
+                "notifyCloudDelay": read_qt_int32(data),
+                "notifyDefaultDelay": read_qt_int32(data),
+                "savedGifsLimit": read_qt_int32(data),  # legacy
+                "editTimeLimit": read_qt_int32(data),
+                "revokeTimeLimit": read_qt_int32(data),
+                "revokePrivateTimeLimit": read_qt_int32(data),
+                "revokePrivateInbox": read_qt_int32(data),
+                "stickersRecentLimit": read_qt_int32(data),
+                "stickersFavedLimit": read_qt_int32(data),  # legacy
+                "pinnedDialogsCountMax": read_qt_int32(data),  # legacy
+                "pinnedDialogsInFolderMax": read_qt_int32(data),  # legacy
+                "internalLinksDomain": read_qt_utf8(data),
+                "channelsReadMediaPeriod": read_qt_int32(data),
+                "callReceiveTimeoutMs": read_qt_int32(data),
+                "callRingTimeoutMs": read_qt_int32(data),
+                "callConnectTimeoutMs": read_qt_int32(data),
+                "callPacketTimeoutMs": read_qt_int32(data),
+                "webFileDcId": read_qt_int32(data),
+                "txtDomainString": read_qt_utf8(data),
+                "phoneCallsEnabled": read_qt_int32(data),  # legacy
+                "blockedMode": read_qt_int32(data),
+                "captionLengthMax": read_qt_int32(data),
+                "reactionDefaultEmoji": read_qt_utf8(data),
+                "reactionDefaultCustom": read_qt_uint64(data),
+            }
+
+        return read_fallback_config(BytesIO(read_qt_byte_array(data)))
 
     if block_id == SettingsBlock.dbiApplicationSettings:
         return read_qt_byte_array(data)
@@ -187,6 +267,11 @@ def _ensure_correct_block_data_type(d):
     if isinstance(d, dict):
         for k, v in d.items():
             assert isinstance(k, str)
+            _ensure_correct_block_data_type(v)
+        return
+
+    if isinstance(d, list):
+        for v in d:
             _ensure_correct_block_data_type(v)
         return
 
