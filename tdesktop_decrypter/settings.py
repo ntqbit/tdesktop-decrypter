@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any, Dict, Tuple
 from io import BytesIO
 from enum import Enum
 
@@ -115,7 +115,9 @@ def read_boolean(data: BytesIO) -> bool:
     return read_qt_int32(data) == 1
 
 
-def read_settings_block(verison, data: BytesIO, block_id: SettingsBlock) -> Any:
+def read_settings_block(
+    verison, data: BytesIO, block_id: SettingsBlock
+) -> Tuple[bool, int, bytes, str, dict]:
     if block_id == SettingsBlock.dbiAutoStart:
         return read_boolean(data)
 
@@ -174,6 +176,23 @@ def read_settings_block(verison, data: BytesIO, block_id: SettingsBlock) -> Any:
     raise SettingsReadException(f"Unnown block ID while reading settings: {block_id}")
 
 
+class IncorrectBlockDataType(Exception):
+    pass
+
+
+def _ensure_correct_block_data_type(d):
+    if any(isinstance(d, c) for c in (int, float, str, bytes)):
+        return
+
+    if isinstance(d, dict):
+        for k, v in d.items():
+            assert isinstance(k, str)
+            _ensure_correct_block_data_type(v)
+        return
+
+    raise IncorrectBlockDataType(type(d))
+
+
 def read_settings_blocks(version, data: BytesIO) -> Dict[SettingsBlock, Any]:
     blocks = {}
 
@@ -181,6 +200,7 @@ def read_settings_blocks(version, data: BytesIO) -> Dict[SettingsBlock, Any]:
         while True:
             block_id = SettingsBlock(read_qt_int32(data))
             block_data = read_settings_block(version, data, block_id)
+            _ensure_correct_block_data_type(block_data)
             blocks[block_id] = block_data
     except StopIteration:
         pass

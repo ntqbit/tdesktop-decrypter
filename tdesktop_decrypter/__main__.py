@@ -1,6 +1,7 @@
 import sys
 import json
 
+
 from typing import Dict, Any, Optional
 
 from .decrypter import (
@@ -28,13 +29,23 @@ def display_accounts(accounts: Dict[int, ParsedAccount]):
             print(f"Key DC {dc_id}: {key.hex()}")
 
 
+def display_setting_value(setting: Any) -> str:
+    if isinstance(setting, bytes):
+        return setting.hex()
+
+    if isinstance(setting, dict):
+        return {k: display_setting_value(v) for k, v in setting.items()}
+
+    return setting
+
+
 def display_settings(settings: Optional[Dict[SettingsBlock, Any]]):
     if settings is None:
         print("No settings found.")
         return
 
     for setting_block, value in settings.items():
-        print(f"{setting_block}: {value}")
+        print(f"{setting_block}: {display_setting_value(value)}")
 
 
 def display_stdout(parsed_tdata: ParsedTdata):
@@ -60,7 +71,9 @@ def display_json(parsed_tdata: ParsedTdata):
     if parsed_tdata.settings is None:
         settings = None
     else:
-        settings = {str(k): v for k, v in parsed_tdata.settings.items()}
+        settings = {
+            str(k): display_setting_value(v) for k, v in parsed_tdata.settings.items()
+        }
 
     obj = {
         "accounts": accounts,
