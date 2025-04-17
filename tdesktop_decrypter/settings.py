@@ -253,6 +253,9 @@ def read_settings_block(
     if block_id == SettingsBlock.dbiMtpAuthorization:
         return read_qt_byte_array(data)
 
+    if block_id == SettingsBlock.dbiLanguagesKey:
+        return read_qt_uint64(data)
+
     raise SettingsReadException(f"Unnown block ID while reading settings: {block_id}")
 
 
