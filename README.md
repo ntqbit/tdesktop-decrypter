@@ -21,7 +21,7 @@ Run as executable:
 ```bash
 tdesktop-decrypter arguments
 ```
-Or run as python module:
+Or run as python module (only with pip installation):
 ```bash
 python -m tdesktop_decrypter arguments
 ```
