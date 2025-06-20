@@ -6,12 +6,26 @@ Inspired by [telegram-desktop-decrypt](https://github.com/atilaromero/telegram-d
 - Settings decryption
 
 ## Installation
+Install with pipx (recommended):
 ```bash
-git clone https://github.com/ntqbit/tdesktop-decrypter
-pip install ./tdesktop-decrypter
+pipx install git+https://github.com/ntqbit/tdesktop-decrypter.git
+```
+
+Install with pip:
+```bash
+pip install git+https://github.com/ntqbit/tdesktop-decrypter.git
 ```
 
 ## Usage
+Run as executable:
+```bash
+tdesktop-decrypter arguments
+```
+Or run as python module:
+```bash
+python -m tdesktop_decrypter arguments
+```
+
 ### Arguments
 - `tdata` - path to tdata folder containing `settings` (or `settings`) and `key_*` files
 - `--passcode`, `-p` - an optional passcode for data decryption
@@ -20,7 +34,7 @@ pip install ./tdesktop-decrypter
 
 ### Example
 ```bash
-$ python -m tdesktop_decrypter /path/to/tdata -p passcode
+$ tdesktop-decrypter /path/to/tdata -p passcode
 
 Account 0:
 MTP data:
@@ -29,7 +43,7 @@ Main DC ID: 1
 Key DC 1: aabbccdd...
 
 
-$ python -m tdesktop_decrypter /path/to/tdata -p passcode -j
+$ tdesktop-decrypter /path/to/tdata -p passcode -j
 
 {
     "accounts": [
