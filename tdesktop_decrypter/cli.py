@@ -52,10 +52,10 @@ def display_settings(settings: Optional[Dict[SettingsBlock, Any]]):
         print(f"{setting_block}: {display_setting_value(value)}")
 
 
-def display_stdout(parsed_tdata: ParsedTdata):
+def display_stdout(parsed_tdata: ParsedTdata, show_settings: bool):
     display_accounts(parsed_tdata.accounts)
 
-    if args.show_settings:
+    if show_settings:
         display_settings(parsed_tdata.settings)
 
 
@@ -109,6 +109,6 @@ def main():
         if args.json:
             display_json(parsed_tdata)
         else:
-            display_stdout(parsed_tdata)
+            display_stdout(parsed_tdata, args.show_settings)
     except NoKeyFileException as exc:
         eprint("No key file was found. Is the tdata path correct?")
