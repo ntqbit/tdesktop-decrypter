@@ -15,7 +15,7 @@ from tdesktop_decrypter.storage import (
 
 
 def file_to_to_str(filekey: bytes):
-    return "".join(f"{b:X}"[::-1] for b in filekey)
+    return "".join(f"{b:02X}"[::-1] for b in filekey)
 
 
 def compute_data_name_key(dataname: str):
