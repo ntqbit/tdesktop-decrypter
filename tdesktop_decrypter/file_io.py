@@ -27,7 +27,7 @@ class TdataFileIo:
             except FileNotFoundError:
                 pass
 
-        raise FileNotFoundError()
+        raise FileNotFoundError(path)
 
     def read_encrypted_file(self, path: str, local_key: bytes) -> Tuple[int, bytes]:
         tdf_file = self.read_tdf_file(path)
